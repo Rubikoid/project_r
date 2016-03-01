@@ -259,8 +259,8 @@ void slap()
 		cout << "You die, level -1, attack -1, x=0,y=0" << endl;
 		player.level--;
 		player.attack--;
-		player.p_x=0;
-		player.p_y=0;
+		player.x=0;
+		player.y=0;
 		player.in_btl = 0;
 	}
 }
