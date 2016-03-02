@@ -5,10 +5,29 @@
 #include <stdlib.h>
 #include <time.h>
 #include <vector>
+#include <conio.h>
 
 using namespace std;
+
+//Структура инфы о предмете
+struct item
+{
+	string name;
+	int cost;
+};
+
+//Структура инфы о враге
+struct enemy
+{
+	string name;
+	int hp;
+	int mana;
+	int attack;
+	int def;
+};
+
 // Структура инфы о игроке
-typedef struct
+struct player_struct
 {
 	int in_btl;
 	int reg;
@@ -22,45 +41,33 @@ typedef struct
 	int kills;
 	int attack;
 	int def;
-	vector<int> inv(1);
-}player_struct;
-//Структура инфы о враге
-typedef struct
-{
-	string name;
-	int hp;
-	int mana;
-	int atta;
-	int def;
-}enemy;
-//Структура инфы о предмете
-typedef struct
-{
-	string name;
-	int cost;
-}item;
+	vector<int> inv;
+	enemy cEnemy; // Current enemy
+};
 
 vector<item> items_list(0);
+vector<enemy> enemy_list(0);
 
-player_struct player = {0,0,"",0,-1,-1,0,1,1,0,5,0,null};
+player_struct player = {0,0,"",0,-1,-1,0,1,1,0,5,0,vector<int>(1)};
 
 void save();
 void read();
 void reg();
 int game();
-int main_2();
+void cmdWork(string cmd);
 void bvm();
 void slap();
 void inv();
-void move();
+void move(int dir);
 
 int game()
 {
-	read_from_file();
+	read();
 	reg();
+	string cmd = "";
 	do
 	{
-		string cmd = "";
+		cmd = "";
 		int key=-1;
 		key = getch();
 		// Говнокод по причине кроссплатформенности.
@@ -97,84 +104,40 @@ int game()
 			player.level++;
 			player.attack += 4;
 			player.def +=1;
-			save_to_file();
+			save();
 		}
-		cmdWork(string cmd);
+		cmdWork(cmd);
 	}
-	while (cmd!="exit")
+	while (cmd != "exit");
 	return 0;
 }
 
 
 
 
-int cmdWork(string cmd)// Команды
+void cmdWork(string cmd)// Команды
 {
-	/*
-		case "":
-		{
-			
-			break;
-		}
-		case "": {  break;}
-		case "":
-		{
-			if(player.in_btl==)
-			{
-				
-			}
-			break;
-		}
-	
-	*/
-	switch(cmd)
+	if(cmd=="save") { save(); }
+	else if(cmd=="load") { read(); }
+	else if(cmd=="inv") { inv(); }
+	else if(cmd=="coord") { cout << "Your coordinates. x = " << player.x << " y = " << player.y << endl; }
+	else if(cmd=="stat") cout << "Your statistic:" << endl << "Name: " << player.name << endl << "Level: " << player.level << endl << "Coordinates: " << endl << "x: " << player.x << endl << "y: " << player.y << endl << "Your experience: " << player.xp << endl << "HP: " << player.hp << endl << "MANA: " << player.mana << endl << "Kills: " << player.kills << endl << "Attack: " << player.attack << endl << "Def: " << player.def << endl;
+	else if(cmd=="hit" && player.in_btl==1) slap();
+	else if(cmd=="heal" && player.in_btl==0)
 	{
-		case "save": { save_to_file(); break;}
-		case "load": { read_from_file(); break;}
-		case "inv": { inv(); break;}
-		case "coord": { cout << "Your coordinates. x = " << player.x << " y = " << player.y << endl; break;}
-		case "stat":
-		{
-			cout << "Your statistic:" << endl << "Name: " << player.name << endl << "Level: " << player.level << endl << "Coordinates: " << endl << "x: " << player.x << endl << "y: " << player.y << endl << "Your experience: " << player.xp << endl << "HP: " << player.hp << endl << "MANA: " << player.mana << endl << "Kills: " << player.kills << endl << "Attack: " << player.attack << endl << "Def: " << player.def << endl;
-			break;
-		}
-		case "hit":
-		{
-			if(player.in_btl==1){ slap(); }
-			break;
-		}
-		case "heal":
-		{
-			if(player.in_btl==0)
-			{
-				int hp_p = pp.atta * 0.45;
-				cout << "You healed for " << hp_p << ";" << endl;
-				pp.hp = pp.hp + hp_p;
-			}
-			break;
-		}
-		case "run_away":
-		{
-			if(player.in_btl == 1)
-			{
-				pp.p_x = pp.p_x + 3; // TODO::Add random
-				pp.p_y = pp.p_y + 2;
-				pp.in_btl = 0;
-				cout << "You ran away from the monster!" << endl;
-			}
-			break;
-		}
-		case "enemy_stat":
-		{
-			if(player.in_btl==)
-			{
-				cout << "Monstr statistic:" << endl << "Name: " << mo.name << endl << "HP: " << mo.hp << endl << "MANA: " << mo.mana << endl << "Attack: "<< mo.atta << endl << "Def: " << mo.def << endl;
-			}
-			break;
-		}
-		case "to_btl": { bvm(); break;}
-		default:{break;}
+			cout << "You healed for " << player.attack * 0.45 << ";" << endl;
+			player.hp += player.attack * 0.45;
 	}
+	else if(cmd=="run_away" && player.in_btl == 1)
+	{
+			player.x += 3; // TODO::Add random
+			player.y += 2;
+			player.in_btl = 0;
+			cout << "You ran away from the monster!" << endl;
+			
+	}
+	else if(cmd=="enemy_stat" && player.in_btl==1) cout << "Monstr statistic:" << endl << "Name: " << player.cEnemy.name << endl << "HP: " << player.cEnemy.hp << endl << "MANA: " << player.cEnemy.mana << endl << "Attack: "<< player.cEnemy.attack << endl << "Def: " << player.cEnemy.def << endl;
+	else if(cmd=="to_btl") bvm();
 	// else if (!strcmp(cmd,"it")) cout << items[1].name << endl; - ??
 	//else if (!strcmp(cmd,"help")) cout << "HELP" << endl << "Now this prigram have cmds:" << endl << "'up','down','left','right','coords','help','stat','save','exit' " << endl;
 }
@@ -229,32 +192,32 @@ void bvm()
 		{
 			case 5:
 			{
-				strcpy(mo.name,"Big Monstr");
-				mo.hp = 100;
-				mo.mana = 50;
-				mo.atta = 15;
-				mo.def = 5;
+				player.cEnemy.name = "Big Monstr";
+				player.cEnemy.hp = 100;
+				player.cEnemy.mana = 50;
+				player.cEnemy.attack = 15;
+				player.cEnemy.def = 5;
 				player.in_btl = 1;
 				cout << mn[mv]<< endl;
 			}
 		}
 	}
-	// if ((pp.atta - mo.def) <= 0 ) cout << "You are so looose for this monster, your's hits heal him, if you want to live, run_away!" << endl; - ??
+	// if ((player.attack - player.cEnemy.def) <= 0 ) cout << "You are so looose for this monster, your's hits heal him, if you want to live, run_away!" << endl; - ??
 }
 
 void slap()
 {
-	mo.hp -=(player.attack - mo.def);
-	cout << "You atack monstr and hit him for " << player.attack - mo.def << " damage" << endl;
-	player.hp -= (mo.atta - player.def);
-	cout << "Monstr atack you and hit you for " << mo.atta - player.def << " damage" << endl;
-	if (mo.hp <= 0 )
+	player.cEnemy.hp -=(player.attack - player.cEnemy.def);
+	cout << "You atack monstr and hit him for " << player.attack - player.cEnemy.def << " damage" << endl;
+	player.hp -= (player.cEnemy.attack - player.def);
+	cout << "Monstr atack you and hit you for " << player.cEnemy.attack - player.def << " damage" << endl;
+	if (player.cEnemy.hp <= 0 )
 	{
 		cout << "You win monstr!" << endl;
 		player.in_btl = 0;
-		mo.hp = 1;
+		player.cEnemy.hp = 1;
 	}
-	if (pp.hp <= 0)
+	if (player.hp <= 0)
 	{
 		cout << "You die, level -1, attack -1, x=0,y=0" << endl;
 		player.level--;
@@ -272,39 +235,39 @@ void inv()
 
 }
 
-void save_to_file()
+void save()
 {
 	ofstream out("save");
-	out << pp.reg << endl;
-	out << pp.name << endl;
-	out << pp.level << endl;
-	out << pp.x << endl;
-	out << pp.y << endl;
-	out << pp.xp << endl;
-	out << pp.hp << endl;
-	out << pp.mana << endl;
-	out << pp.kills << endl;
-	out << pp.attack << endl;
-	out << pp.def << endl;
+	out << player.reg << endl;
+	out << player.name << endl;
+	out << player.level << endl;
+	out << player.x << endl;
+	out << player.y << endl;
+	out << player.xp << endl;
+	out << player.hp << endl;
+	out << player.mana << endl;
+	out << player.kills << endl;
+	out << player.attack << endl;
+	out << player.def << endl;
 	out.close();
 }
 
-void read_from_file()
+void read()
 {
 	ifstream in("save");
-	in >> pp.reg;
-	in >> pp.name;
-	in >> pp.level;
-	in >> pp.x;
-	in >> pp.y;
-	in >> pp.xp;
-	in >> pp.hp;
-	in >> pp.mana;
-	in >> pp.kills;
-	in >> pp.attack;
-	in >> pp.def;
+	in >> player.reg;
+	in >> player.name;
+	in >> player.level;
+	in >> player.x;
+	in >> player.y;
+	in >> player.xp;
+	in >> player.hp;
+	in >> player.mana;
+	in >> player.kills;
+	in >> player.attack;
+	in >> player.def;
 	in.close();
-	if (!pp.reg == 0 ) cout << "Your name:" << pp.name << endl << "Your level: " << pp.level << endl;
+	if (!player.reg == 0 ) cout << "Your name:" << player.name << endl << "Your level: " << player.level << endl;
 
 }
 
@@ -319,7 +282,7 @@ void reg()
 		player.x = 0;
 		player.y = 0;
 		player.level = 1;
-		save_to_file();
+		save();
 		cout << "Your name: " << player.name << endl << "Your level: " << player.level << endl;
 	}
 }
@@ -327,7 +290,7 @@ void reg()
 int main()
 {
 	while(game()!=0) { }
-	save_to_file();
+	save();
 	cout << "Thanks for playing!"<< endl;
 	return 0;
 }
