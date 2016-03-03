@@ -21,7 +21,9 @@ struct enemy
 {
 	string name;
 	int hp;
+	int hpmax;
 	int mana;
+	int manamax;
 	int attack;
 	int def;
 };
@@ -37,7 +39,9 @@ struct player_struct
 	int y;
 	int xp;
 	int hp;
+	int hpmax;
 	int mana;
+	int manamax;
 	int kills;
 	int attack;
 	int def;
@@ -48,7 +52,7 @@ struct player_struct
 vector<item> items_list(0);
 vector<enemy> enemy_list(0);
 
-player_struct player = {0,0,"",0,-1,-1,0,1,1,0,5,0,vector<int>(1)};
+player_struct player = {0,0,"",1,-1,-1,0,100,100,100,100,0,10,10,vector<int>(1)};
 
 void save();
 void read();
@@ -59,7 +63,13 @@ void bvm();
 void slap();
 void inv();
 void move(int dir);
+int irand(int min,int max);
 
+        //num = min_num + rand() % num_max;
+		// min & max - включительно.
+int irand(int min,int max) { return min+rand()%max; }
+		
+		
 int game()
 {
 	read();
@@ -87,26 +97,34 @@ int game()
 		else if(key == 13) continue;
 		else
 		{
-			cmd+=(char)key;
-			cout << (char)key;
+			if(key!=8)
+			{
+				cmd+=(char)key;
+				cout << (char)key;
+			}
 			while(key != 13)
 			{
-				key = getche();
-				if(key != 13) cmd+=(char)key;
+				key = getch();
+				if(key==8 && cmd.length()>0) 
+				{
+					cmd.erase(cmd.length()-1,1);
+					cout << "\b \b";
+				}
+				else if(key != 13){ cmd+=(char)key; cout << (char)key; }
+				
 			}
 			cout << endl;
 		}
-
-		if (player.xp == (25*player.level))
+		cmdWork(cmd);
+		if (player.xp >= (25*player.level))
 		{
-			player.xp = 0; 
+			player.xp-=25*player.level; 
 			cout << "Level UP!" << endl;
 			player.level++;
-			player.attack += 4;
+			player.attack += 5;
 			player.def +=1;
 			save();
 		}
-		cmdWork(cmd);
 	}
 	while (cmd != "exit");
 	return 0;
@@ -120,7 +138,7 @@ void cmdWork(string cmd)// Команды
 	if(cmd=="save") { save(); }
 	else if(cmd=="load") { read(); }
 	else if(cmd=="inv") { inv(); }
-	else if(cmd=="coord") { cout << "Your coordinates. x = " << player.x << " y = " << player.y << endl; }
+	else if(cmd=="cord") { cout << "Your coordinates. x = " << player.x << " y = " << player.y << endl; }
 	else if(cmd=="stat") cout << "Your statistic:" << endl << "Name: " << player.name << endl << "Level: " << player.level << endl << "Coordinates: " << endl << "x: " << player.x << endl << "y: " << player.y << endl << "Your experience: " << player.xp << endl << "HP: " << player.hp << endl << "MANA: " << player.mana << endl << "Kills: " << player.kills << endl << "Attack: " << player.attack << endl << "Def: " << player.def << endl;
 	else if(cmd=="hit" && player.in_btl==1) slap();
 	else if(cmd=="heal" && player.in_btl==0)
@@ -130,14 +148,15 @@ void cmdWork(string cmd)// Команды
 	}
 	else if(cmd=="run_away" && player.in_btl == 1)
 	{
-			player.x += 3; // TODO::Add random
-			player.y += 2;
+			player.x += irand(-5,5);
+			player.y += irand(-5,5);
 			player.in_btl = 0;
 			cout << "You ran away from the monster!" << endl;
 			
 	}
-	else if(cmd=="enemy_stat" && player.in_btl==1) cout << "Monstr statistic:" << endl << "Name: " << player.cEnemy.name << endl << "HP: " << player.cEnemy.hp << endl << "MANA: " << player.cEnemy.mana << endl << "Attack: "<< player.cEnemy.attack << endl << "Def: " << player.cEnemy.def << endl;
+	else if(cmd=="estat" && player.in_btl==1) cout << "Monstr statistic:" << endl << "Name: " << player.cEnemy.name << endl << "HP: " << player.cEnemy.hp << endl << "MANA: " << player.cEnemy.mana << endl << "Attack: "<< player.cEnemy.attack << endl << "Def: " << player.cEnemy.def << endl;
 	else if(cmd=="to_btl") bvm();
+	else {}
 	// else if (!strcmp(cmd,"it")) cout << items[1].name << endl; - ??
 	//else if (!strcmp(cmd,"help")) cout << "HELP" << endl << "Now this prigram have cmds:" << endl << "'up','down','left','right','coords','help','stat','save','exit' " << endl;
 }
@@ -171,51 +190,101 @@ void move(int dir)
 			break;
 		}
 	}
+	player.xp+=irand(0,2);
 }
 
 void bvm()
 {
-	int mv = 5;
-	char mn[][100]=
-	{
-		"",
-		"You get very big monster!",
-		"You get normal monster!",
-		"You get small monster!",
-		"You get small-normal monster!",
-		"You get normal-big monster!",
-		"You get VERY BIG MONSTER!!!",
-	};
 	if ( !player.in_btl == 1 )
 	{
+		int mv = irand(0,3);
+		string mn[]=
+		{
+			"Enemy class : small",
+			"Enemy class : normal",
+			"Enemy class : big",
+			"Enemy class : very small",
+			"Enemy class : boss"
+		};
 		switch (mv)
 		{
-			case 5:
+			case 0:
 			{
-				player.cEnemy.name = "Big Monstr";
-				player.cEnemy.hp = 100;
-				player.cEnemy.mana = 50;
-				player.cEnemy.attack = 15;
-				player.cEnemy.def = 5;
-				player.in_btl = 1;
+				player.cEnemy.name = "Small class";
+				player.cEnemy.hp = 30 + irand(-10,10);
+				player.cEnemy.mana = 0;
+				player.cEnemy.attack = irand(1,2);
+				player.cEnemy.def = 0;
+				cout << mn[mv]<< endl;
+			}
+			
+			case 1:
+			{
+				player.cEnemy.name = "Normal class";
+				player.cEnemy.hp = 60 + irand(-15,15);
+				player.cEnemy.mana = 20;
+				player.cEnemy.attack = irand(3,7);
+				player.cEnemy.def = irand(0,2);
+				cout << mn[mv]<< endl;
+			}
+			
+			case 2:
+			{
+				player.cEnemy.name = "Big class";
+				player.cEnemy.hp = 90 + irand(-20,20);
+				player.cEnemy.mana = 40;
+				player.cEnemy.attack = irand(8,12);
+				player.cEnemy.def = irand(1,4);
+				cout << mn[mv]<< endl;
+			}
+			
+			case 3:
+			{
+				player.cEnemy.name = "Very small class";
+				player.cEnemy.hp = 15 + irand(-10,10);
+				player.cEnemy.mana = 0;
+				player.cEnemy.attack = 1;
+				player.cEnemy.def = 0;
+				cout << mn[mv]<< endl;
+			}
+			
+			
+			case 4:
+			{
+				player.cEnemy.name = "Boss class";
+				player.cEnemy.hp = 150 + irand(-30,30);
+				player.cEnemy.mana = 60;
+				player.cEnemy.attack = irand(13,18);
+				player.cEnemy.def = irand(5,10);
 				cout << mn[mv]<< endl;
 			}
 		}
+		player.in_btl = 1;
+		cout << mn[mv] << endl;
+		if ((player.attack - player.cEnemy.def) <= 0 ) cout << "This enemy have too much defence. You can't hit him. Try to use spell (WIP), or run away" << endl;
 	}
-	// if ((player.attack - player.cEnemy.def) <= 0 ) cout << "You are so looose for this monster, your's hits heal him, if you want to live, run_away!" << endl; - ??
 }
 
 void slap()
 {
-	player.cEnemy.hp -=(player.attack - player.cEnemy.def);
-	cout << "You atack monstr and hit him for " << player.attack - player.cEnemy.def << " damage" << endl;
-	player.hp -= (player.cEnemy.attack - player.def);
-	cout << "Monstr atack you and hit you for " << player.cEnemy.attack - player.def << " damage" << endl;
+	if((player.attack - player.cEnemy.def) > 0)
+	{
+		player.cEnemy.hp -= (player.attack - player.cEnemy.def);
+		cout << "You atack monstr and hit him for " << player.attack - player.cEnemy.def << " damage" << endl;
+	}
+	else cout << "Your attacks can't hit this enemy." << endl;
+	if((player.cEnemy.attack - player.def) > 0)
+	{
+		player.hp -= (player.cEnemy.attack - player.def);
+		cout << "Monstr atack you and hit you for " << player.cEnemy.attack - player.def << " damage" << endl;
+	}
+	else cout << "Enemy's attacks can't kit you." << endl;
 	if (player.cEnemy.hp <= 0 )
 	{
-		cout << "You win monstr!" << endl;
+		cout << "You kild this enemy." << endl;
 		player.in_btl = 0;
-		player.cEnemy.hp = 1;
+		player.cEnemy.hp = 0;
+		player.xp+=50 + irand(0,20);
 	}
 	if (player.hp <= 0)
 	{
@@ -289,6 +358,7 @@ void reg()
 
 int main()
 {
+	srand(time(0));
 	while(game()!=0) { }
 	save();
 	cout << "Thanks for playing!"<< endl;
